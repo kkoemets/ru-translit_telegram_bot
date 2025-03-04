@@ -1,0 +1,4 @@
+python-telegram-bot==21.11.1
+transliterate==1.10.2
+pyaspeller==2.0.2
+python-dotenv==1.0.1
