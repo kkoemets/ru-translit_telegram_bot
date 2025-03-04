@@ -1,12 +1,12 @@
 import logging
+import os
+
+import pyaspeller
+from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-import pyaspeller
-import os
-from dotenv import load_dotenv
 from transliterate import translit
 
-# Load environment variables from .env file
 load_dotenv()
 
 logging.basicConfig(
@@ -15,6 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 speller = pyaspeller.YandexSpeller(lang='ru')
+
 
 def fix_typos(text):
     """
@@ -30,8 +31,9 @@ def fix_typos(text):
             length = len(error['word'])
             if error['s']:
                 suggestion = error['s'][0]
-                text = text[:start] + suggestion + text[start + length :]
+                text = text[:start] + suggestion + text[start + length:]
     return text
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send a welcome message when the /start command is issued."""
@@ -40,15 +42,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "и я переведу его в кириллицу, а также постараюсь исправить опечатки."
     )
 
+
 async def transform_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Take the user's message, transliterate it from Latin to Cyrillic,
     fix typos using YandexSpeller, and then reply with the result.
     """
-    input_text = update.message.text
+    input_text = (update.message.text.replace("yo", "ё")
+                  .replace("Yo", "Ё"))
 
     try:
-        # Transliterate from Latin to Cyrillic
         transliterated_text = translit(input_text, 'ru')
     except Exception as e:
         logger.error("Transliteration error: %s", e)
@@ -58,9 +61,9 @@ async def transform_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fixed_text = fix_typos(transliterated_text)
     await update.message.reply_text(fixed_text)
 
+
 def main():
     """Start the bot."""
-    # Load the bot token from an environment variable.
     token = os.getenv('TELEGRAM_BOT_TOKEN')
     if not token:
         logger.error("No token provided. Set the TELEGRAM_BOT_TOKEN environment variable.")
@@ -68,13 +71,11 @@ def main():
 
     application = Application.builder().token(token).build()
 
-    # Register the /start command handler.
     application.add_handler(CommandHandler("start", start))
-    # Register a message handler for processing text messages.
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, transform_text))
 
-    # Start the bot
     application.run_polling()
+
 
 if __name__ == '__main__':
     main()
