@@ -39,8 +39,8 @@ This is a Telegram bot that transliterates Latin characters to Cyrillic and fixe
     ```
 
 4. Create a .env file with your Telegram bot token by running the setup script:
-   bash setup_env.sh
-    ```bash
+
+   ```bash
     bash setup_env.sh
     ```
 
@@ -55,7 +55,7 @@ This is a Telegram bot that transliterates Latin characters to Cyrillic and fixe
 1. Build and run the Docker container:
 
     ```bash
-    docker-compose up --build
+    docker-compose up -d --build
     ```
 
 ## Usage
