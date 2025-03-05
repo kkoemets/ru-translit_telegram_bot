@@ -3,7 +3,7 @@ import os
 
 import pyaspeller
 from dotenv import load_dotenv
-from telegram import Update
+from telegram import Update, BotCommand
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from transliterate import translit
 
@@ -43,6 +43,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def mappings(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Send a welcome message when the /start command is issued."""
+    await update.message.reply_text(
+        "y -> ы\n"
+        "zh -> ж\n"
+        "ts -> ц\n"
+        "ch -> ч\n"
+        "sh -> ш\n"
+        "sch -> щ\n"
+        "ju -> ю\n"
+        "ja -> я\n"
+        "yo -> ё\n"
+        "Y -> Ы\n"
+        "Zh -> Ж\n"
+        "Ts -> Ц\n"
+        "Ch -> Ч\n"
+        "Sh -> Ш\n"
+        "Sch -> Щ\n"
+        "Ju -> Ю\n"
+        "Ja -> Я\n"
+        "Yo -> Ё\n"
+    )
+
+
 async def transform_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Take the user's message, transliterate it from Latin to Cyrillic,
@@ -62,6 +86,13 @@ async def transform_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(fixed_text)
 
 
+async def post_init(application: Application):
+    await application.bot.set_my_commands([
+        BotCommand("/start", "Show welcome message"),
+        BotCommand("/mappings", "Show Latin to Cyrillic mappings")
+    ])
+
+
 def main():
     """Start the bot."""
     token = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -69,9 +100,13 @@ def main():
         logger.error("No token provided. Set the TELEGRAM_BOT_TOKEN environment variable.")
         return
 
-    application = Application.builder().token(token).build()
+    application = (Application.builder()
+                   .token(token)
+                   .post_init(post_init)
+                   .build())
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("mappings", mappings))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, transform_text))
 
     application.run_polling()
